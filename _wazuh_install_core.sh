@@ -64,7 +64,7 @@ https://packages.wazuh.com/4.x/apt/ stable main" \
         > /etc/apt/sources.list.d/wazuh.list
     apt-get update -qq
     echo "[2/3] Installing..."
-    WAZUH_MANAGER="$MANAGER" apt-get install -y wazuh-agent
+    WAZUH_MANAGER="$MANAGER" apt-get install -y wazuh-agent=$VER
     ;;
   rhel)
     rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH
@@ -77,7 +77,7 @@ gpgcheck=1
 gpgkey=https://packages.wazuh.com/key/GPG-KEY-WAZUH
 EOF
     echo "[2/3] Installing..."
-    WAZUH_MANAGER="$MANAGER" yum install -y wazuh-agent
+    WAZUH_MANAGER="$MANAGER" yum install -y wazuh-agent-$VER
     ;;
   arch)
     echo "[2/3] Installing via AUR..."
