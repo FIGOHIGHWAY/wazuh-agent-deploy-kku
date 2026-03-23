@@ -1,5 +1,22 @@
 #!/bin/bash
-# _wazuh_install_core.sh — called by group scripts, expects GROUP to be set
+# =============================================================
+#  Wazuh Agent Installer — Linux (KKU ODT)
+# =============================================================
+#
+#  วิธีดาวน์โหลด:
+#    curl -O https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
+#
+#  วิธีติดตั้ง:
+#    sudo bash _wazuh_install_core.sh
+#
+#  หรือดาวน์โหลดและรันในคำสั่งเดียว:
+#    curl -s https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh | sudo bash
+#
+#  Script จะถาม:
+#    1. Group     (เช่น ODTLIB4F, VMODT)
+#    2. Agent name (เช่น LIB4F-PC01)
+#
+# =============================================================
 
 MANAGER="10.101.102.243"
 VER="4.10.1-1"
