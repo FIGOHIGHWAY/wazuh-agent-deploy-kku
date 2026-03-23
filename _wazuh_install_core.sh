@@ -1,0 +1,123 @@
+#!/bin/bash
+# _wazuh_install_core.sh — called by group scripts, expects GROUP to be set
+
+MANAGER="10.101.102.243"
+VER="4.10.1-1"
+
+# ── Privilege check ──
+if [[ $EUID -ne 0 ]]; then
+    echo "[ERROR] Run as root (sudo)"
+    exit 1
+fi
+
+# ── Agent name (manual input) ──
+if [[ -z "$AGENT_NAME" ]]; then
+    read -rp "Agent name (e.g. LIB4F-PC01): " AGENT_NAME
+fi
+if [[ -z "$AGENT_NAME" ]]; then
+    echo "[ERROR] Agent name cannot be empty"
+    exit 1
+fi
+
+# ── Detect distro ──
+if   [[ -f /etc/debian_version ]]; then DISTRO=debian
+elif [[ -f /etc/redhat-release ]]; then DISTRO=rhel
+elif [[ -f /etc/arch-release ]];   then DISTRO=arch
+else
+    echo "[ERROR] Unsupported distro"
+    exit 1
+fi
+
+echo "=============================="
+echo " Wazuh Agent Installer (Linux)"
+echo " Agent  : $AGENT_NAME"
+echo " Group  : $GROUP"
+echo " Manager: $MANAGER"
+echo " Distro : $DISTRO"
+echo "=============================="
+echo
+
+# ── Skip if already installed ──
+if systemctl list-units --type=service | grep -q wazuh-agent; then
+    echo "[WARN] Wazuh already installed. Skipping."
+    exit 0
+fi
+
+# ── Add Wazuh repo & install ──
+echo "[1/3] Adding Wazuh repository..."
+
+case $DISTRO in
+  debian)
+    curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH \
+        | gpg --dearmor -o /usr/share/keyrings/wazuh.gpg
+    echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] \
+https://packages.wazuh.com/4.x/apt/ stable main" \
+        > /etc/apt/sources.list.d/wazuh.list
+    apt-get update -qq
+    echo "[2/3] Installing..."
+    WAZUH_MANAGER="$MANAGER" apt-get install -y wazuh-agent
+    ;;
+  rhel)
+    rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    cat > /etc/yum.repos.d/wazuh.repo <<EOF
+[wazuh]
+name=Wazuh
+baseurl=https://packages.wazuh.com/4.x/yum/
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.wazuh.com/key/GPG-KEY-WAZUH
+EOF
+    echo "[2/3] Installing..."
+    WAZUH_MANAGER="$MANAGER" yum install -y wazuh-agent
+    ;;
+  arch)
+    echo "[2/3] Installing via AUR..."
+    # Assumes paru or yay is available
+    AUR_HELPER=$(command -v paru || command -v yay)
+    if [[ -z "$AUR_HELPER" ]]; then
+        echo "[ERROR] AUR helper (paru/yay) not found"
+        exit 1
+    fi
+    WAZUH_MANAGER="$MANAGER" sudo -u "${SUDO_USER:-$USER}" "$AUR_HELPER" -S --noconfirm wazuh-agent
+    ;;
+esac
+
+if [[ $? -ne 0 ]]; then
+    echo "[ERROR] Install failed"
+    exit 1
+fi
+
+# ── Set agent name & group in config ──
+CONF=/var/ossec/etc/ossec.conf
+
+sed -i "s|<address>.*</address>|<address>$MANAGER</address>|" "$CONF"
+
+# Agent name
+if grep -q "<agent_name>" "$CONF"; then
+    sed -i "s|<agent_name>.*</agent_name>|<agent_name>$AGENT_NAME</agent_name>|" "$CONF"
+else
+    sed -i "s|</client>|  <agent_name>$AGENT_NAME</agent_name>\n</client>|" "$CONF"
+fi
+
+# Group via /var/ossec/etc/shared/
+mkdir -p /var/ossec/etc/shared
+echo "$GROUP" > /var/ossec/etc/shared/ar.conf 2>/dev/null || true
+
+# Use registration with group flag
+/var/ossec/bin/agent-auth -m "$MANAGER" -A "$AGENT_NAME" -G "$GROUP" 2>/dev/null || true
+
+# ── Start service ──
+echo "[3/3] Starting service..."
+systemctl daemon-reload
+systemctl enable wazuh-agent
+systemctl start wazuh-agent
+
+if ! systemctl is-active --quiet wazuh-agent; then
+    echo "[ERROR] Service failed to start"
+    systemctl status wazuh-agent --no-pager
+    exit 1
+fi
+
+echo
+echo "[OK] Agent \"$AGENT_NAME\" registered to group \"$GROUP\" on $MANAGER"
+echo "     Status: $(systemctl is-active wazuh-agent)"
