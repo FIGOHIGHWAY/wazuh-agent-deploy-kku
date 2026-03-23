@@ -101,13 +101,6 @@ CONF=/var/ossec/etc/ossec.conf
 
 sed -i "s|<address>.*</address>|<address>$MANAGER</address>|" "$CONF"
 
-# Agent name
-if grep -q "<agent_name>" "$CONF"; then
-    sed -i "s|<agent_name>.*</agent_name>|<agent_name>$AGENT_NAME</agent_name>|" "$CONF"
-else
-    sed -i "s|</client>|  <agent_name>$AGENT_NAME</agent_name>\n</client>|" "$CONF"
-fi
-
 # Group via /var/ossec/etc/shared/
 mkdir -p /var/ossec/etc/shared
 echo "$GROUP" > /var/ossec/etc/shared/ar.conf 2>/dev/null || true
