@@ -11,9 +11,7 @@
 ├── install_wazuh_ODTLIB4F.bat   # Windows — ห้อง ODTLIB ชั้น 4
 ├── install_wazuh_ODTLIB5F.bat   # Windows — ห้อง ODTLIB ชั้น 5
 ├── _wazuh_install_core.bat      # Windows core logic (ไม่ต้องแตะ)
-├── install_wazuh_ODTLIB4F.sh    # Linux — ห้อง ODTLIB ชั้น 4
-├── install_wazuh_ODTLIB5F.sh    # Linux — ห้อง ODTLIB ชั้น 5
-└── _wazuh_install_core.sh       # Linux core logic (ไม่ต้องแตะ)
+└── _wazuh_install_core.sh       # Linux — ถามชื่อ Group และ Agent อัตโนมัติ
 ```
 
 ---
@@ -35,16 +33,26 @@ install_wazuh_ODTLIB5F.bat   ← ชั้น 5
 
 ### Linux
 
+**ดาวน์โหลด:**
 ```bash
-chmod +x install_wazuh_ODTLIB4F.sh
-sudo ./install_wazuh_ODTLIB4F.sh
+curl -O https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
 ```
 
-- Script จะ **prompt ให้กรอกชื่อ Agent** เอง
+**ติดตั้ง:**
+```bash
+sudo bash _wazuh_install_core.sh
+```
+
+**หรือดาวน์โหลดและรันในคำสั่งเดียว:**
+```bash
+curl -s https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh | sudo bash
+```
+
+- Script จะ **prompt ให้กรอก Group และชื่อ Agent** เอง
 - หรือส่งผ่าน environment variable (สำหรับ Ansible/mass deploy):
 
 ```bash
-sudo AGENT_NAME="LIB4F-PC01" ./install_wazuh_ODTLIB4F.sh
+sudo GROUP="ODTLIB4F" AGENT_NAME="LIB4F-PC01" bash _wazuh_install_core.sh
 ```
 
 **Distro ที่รองรับ:** Ubuntu/Debian · CentOS/RHEL/Rocky · Arch Linux
@@ -61,11 +69,9 @@ set GROUP=ODTLIB6F
 call "%~dp0_wazuh_install_core.bat"
 ```
 
-Linux:
+Linux — ระบุ GROUP ตอนรัน:
 ```bash
-#!/bin/bash
-GROUP=ODTLIB6F
-source "$(dirname "$0")/_wazuh_install_core.sh"
+sudo GROUP=ODTLIB6F bash _wazuh_install_core.sh
 ```
 
 ---
