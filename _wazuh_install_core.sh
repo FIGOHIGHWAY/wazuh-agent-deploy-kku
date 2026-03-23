@@ -10,6 +10,15 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# ── Group (manual input if not pre-set) ──
+if [[ -z "$GROUP" ]]; then
+    read -rp "Group (e.g. ODTLIB4F): " GROUP
+fi
+if [[ -z "$GROUP" ]]; then
+    echo "[ERROR] Group cannot be empty"
+    exit 1
+fi
+
 # ── Agent name (manual input) ──
 if [[ -z "$AGENT_NAME" ]]; then
     read -rp "Agent name (e.g. LIB4F-PC01): " AGENT_NAME
