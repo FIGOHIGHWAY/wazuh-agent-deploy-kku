@@ -96,17 +96,16 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# ── Set agent name & group in config ──
+# ── Set agent name & group via enrollment config (Wazuh 4.x) ──
 CONF=/var/ossec/etc/ossec.conf
 
 sed -i "s|<address>.*</address>|<address>$MANAGER</address>|" "$CONF"
 
-# Group via /var/ossec/etc/shared/
-mkdir -p /var/ossec/etc/shared
-echo "$GROUP" > /var/ossec/etc/shared/ar.conf 2>/dev/null || true
-
-# Use registration with group flag
-/var/ossec/bin/agent-auth -m "$MANAGER" -A "$AGENT_NAME" -G "$GROUP" 2>/dev/null || true
+# Inject <enrollment> block with agent_name and groups
+if grep -q "<enrollment>" "$CONF"; then
+    sed -i "s|<enrollment>.*</enrollment>||g" "$CONF"
+fi
+sed -i "s|</client>|  <enrollment>\n    <enabled>yes</enabled>\n    <agent_name>$AGENT_NAME</agent_name>\n    <groups>$GROUP</groups>\n  </enrollment>\n</client>|" "$CONF"
 
 # ── Start service ──
 echo "[3/3] Starting service..."
