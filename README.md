@@ -51,8 +51,14 @@ curl -s https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/mai
 - Script จะ **prompt ให้กรอก Group และชื่อ Agent** เอง
 - หรือส่งผ่าน environment variable (สำหรับ Ansible/mass deploy):
 
+**กลุ่ม ODTLIB:**
 ```bash
 sudo GROUP="ODTLIB4F" AGENT_NAME="LIB4F-PC01" bash _wazuh_install_core.sh
+```
+
+**กลุ่ม VMODT:**
+```bash
+sudo GROUP="VMODT" AGENT_NAME="odt.kku.ac.th" bash _wazuh_install_core.sh
 ```
 
 **Distro ที่รองรับ:** Ubuntu/Debian · CentOS/RHEL/Rocky · Arch Linux
