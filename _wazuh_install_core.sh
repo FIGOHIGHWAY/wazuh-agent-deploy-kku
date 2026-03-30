@@ -48,7 +48,10 @@ fi
 
 # ── Web root monitoring (optional) ──
 if [[ -z "$WEBROOT" ]]; then
-    read -rp "Monitor web root? Leave blank to skip (e.g. /var/www/html): " WEBROOT </dev/tty
+    read -rp "Enable web root monitoring? (y/N): " _WEB_CONFIRM </dev/tty
+    if [[ "$_WEB_CONFIRM" =~ ^[Yy]$ ]]; then
+        read -rp "Web root path (e.g. /var/www/html): " WEBROOT </dev/tty
+    fi
 fi
 
 # ── Detect distro ──
