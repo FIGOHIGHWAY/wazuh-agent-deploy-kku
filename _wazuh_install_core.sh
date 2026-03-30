@@ -13,8 +13,9 @@
 #    curl -s https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh | sudo bash
 #
 #  Script จะถาม:
-#    1. Group     (เช่น ODTLIB4F, VMODT)
+#    1. Group      (เช่น ODTLIB4F, VMODT)
 #    2. Agent name (เช่น LIB4F-PC01)
+#    3. Web root   (เช่น /var/www/html) — กด Enter เพื่อข้าม
 #
 # =============================================================
 
@@ -45,6 +46,11 @@ if [[ -z "$AGENT_NAME" ]]; then
     exit 1
 fi
 
+# ── Web root monitoring (optional) ──
+if [[ -z "$WEBROOT" ]]; then
+    read -rp "Monitor web root? Leave blank to skip (e.g. /var/www/html): " WEBROOT </dev/tty
+fi
+
 # ── Detect distro ──
 if   [[ -f /etc/debian_version ]]; then DISTRO=debian
 elif [[ -f /etc/redhat-release ]]; then DISTRO=rhel
@@ -60,6 +66,7 @@ echo " Agent  : $AGENT_NAME"
 echo " Group  : $GROUP"
 echo " Manager: $MANAGER"
 echo " Distro : $DISTRO"
+[[ -n "$WEBROOT" ]] && echo " WebRoot: $WEBROOT (FIM)"
 echo "=============================="
 echo
 
@@ -123,6 +130,16 @@ if grep -q "<enrollment>" "$CONF"; then
     sed -i "s|<enrollment>.*</enrollment>||g" "$CONF"
 fi
 sed -i "s|</client>|  <enrollment>\n    <enabled>yes</enabled>\n    <agent_name>$AGENT_NAME</agent_name>\n    <groups>$GROUP</groups>\n  </enrollment>\n</client>|" "$CONF"
+
+# ── Web root FIM (File Integrity Monitoring) ──
+if [[ -n "$WEBROOT" ]]; then
+    if grep -q "<directories>" "$CONF"; then
+        sed -i "s|</syscheck>|  <directories realtime=\"yes\" report_changes=\"yes\" check_all=\"yes\">$WEBROOT</directories>\n</syscheck>|" "$CONF"
+    else
+        sed -i "s|</syscheck>|  <directories realtime=\"yes\" report_changes=\"yes\" check_all=\"yes\">$WEBROOT</directories>\n</syscheck>|" "$CONF"
+    fi
+    echo "[FIM] Monitoring web root: $WEBROOT"
+fi
 
 # ── Start service ──
 echo "[3/3] Starting service..."
