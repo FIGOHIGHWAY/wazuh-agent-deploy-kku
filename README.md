@@ -38,6 +38,11 @@ install_wazuh_ODTLIB5F.bat   ← ชั้น 5
 curl -O https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
 ```
 
+ถ้าเครื่องยังไม่มี `curl` ให้ใช้ `wget` แทน (script จะติดตั้ง `curl` และ `gpg` ให้เอง):
+```bash
+wget https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
+```
+
 **ติดตั้ง:**
 ```bash
 sudo bash _wazuh_install_core.sh

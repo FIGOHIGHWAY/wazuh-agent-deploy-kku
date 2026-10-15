@@ -6,6 +6,9 @@
 #  วิธีดาวน์โหลด:
 #    curl -O https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
 #
+#  ถ้าเครื่องยังไม่มี curl:
+#    wget https://raw.githubusercontent.com/FIGOHIGHWAY/wazuh-agent-deploy-kku/main/_wazuh_install_core.sh
+#
 #  วิธีติดตั้ง:
 #    sudo bash _wazuh_install_core.sh
 #
@@ -84,6 +87,8 @@ echo "[1/3] Adding Wazuh repository..."
 
 case $DISTRO in
   debian)
+    apt-get update -qq
+    apt-get install -y curl gpg
     curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH \
         | gpg --dearmor -o /usr/share/keyrings/wazuh.gpg
     echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] \
@@ -94,6 +99,7 @@ https://packages.wazuh.com/4.x/apt/ stable main" \
     WAZUH_MANAGER="$MANAGER" apt-get install -y wazuh-agent=$VER
     ;;
   rhel)
+    yum install -y curl gnupg2
     rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH
     cat > /etc/yum.repos.d/wazuh.repo <<EOF
 [wazuh]
